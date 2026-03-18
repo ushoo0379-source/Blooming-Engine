@@ -17,6 +17,7 @@
             padding: 15px 20px; border-radius: 8px;
             border: 2px solid rgba(255, 255, 255, 0.3);
             opacity: 0; transition: all 0.3s;
+            transform: scale(2); transform-origin: top right;
         }
         #status.active { opacity: 1; border-color: #ffffff; box-shadow: 0 0 20px rgba(255, 255, 255, 0.3); }
         #status.danger { border-color: #ffffff; box-shadow: 0 0 30px rgba(255, 255, 255, 0.8); background: rgba(50, 0, 0, 0.9); }
@@ -38,6 +39,7 @@
             z-index: 100; background: rgba(10, 10, 21, 0.85);
             padding: 15px 20px; border-radius: 8px;
             border: 1px solid rgba(255, 255, 255, 0.3); pointer-events: none;
+            transform: scale(3); transform-origin: bottom left;
         }
         .interaction-guide h3 { font-size: 16px; margin-bottom: 10px; color: #ffffff; letter-spacing: 2px; }
 
@@ -49,10 +51,10 @@
         }
 
         #webcam-video {
-            position: fixed; top: 20px; left: 20px;
+            position: fixed; top: 20px; left: 280px;
             width: 160px; height: 120px;
             border: 1px solid #ffffff; opacity: 0.6; 
-            z-index: 999; transform: scaleX(-1);
+            z-index: 999; transform: translateX(160px) scaleX(-2.5) scaleY(2); transform-origin: top left;
             border-radius: 4px; display: none;
         }
         
@@ -203,7 +205,7 @@
         scene.fog = new THREE.FogExp2(CONFIG.colors.background, 0.018);
 
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-        camera.position.set(0, 12, 20);
+        camera.position.set(0, 8, 13);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -631,19 +633,25 @@
                         }
                     }
 
-                    if (isFist) {
-                        if (!gestureState.isFist) gestureState.chargeStartTime = performance.now();
-                        gestureState.isFist = true;
-                        gestureState.chargeProgress = Math.min(1.0, (performance.now() - gestureState.chargeStartTime) / 2000);
-                        if (gestureState.chargeProgress >= 1.0) gestureState.isCharged = true;
-                    } else {
-                        if (gestureState.isFist && gestureState.isCharged) {
-                            triggerParticleBurst();
-                            gestureState.isCharged = false; gestureState.chargeProgress = 0;
+                    if (!isCrossed) {
+                        if (isFist) {
+                            if (!gestureState.isFist) gestureState.chargeStartTime = performance.now();
+                            gestureState.isFist = true;
+                            gestureState.chargeProgress = Math.min(1.0, (performance.now() - gestureState.chargeStartTime) / 2000);
+                            if (gestureState.chargeProgress >= 1.0) gestureState.isCharged = true;
                         } else {
-                            gestureState.chargeProgress = Math.max(0, gestureState.chargeProgress - 0.05);
+                            if (gestureState.isFist && gestureState.isCharged) {
+                                triggerParticleBurst();
+                                gestureState.isCharged = false; gestureState.chargeProgress = 0;
+                            } else {
+                                gestureState.chargeProgress = Math.max(0, gestureState.chargeProgress - 0.05);
+                            }
+                            gestureState.isFist = false;
                         }
+                    } else {
                         gestureState.isFist = false;
+                        gestureState.isCharged = false;
+                        gestureState.chargeProgress = 0;
                     }
 
                     if (isVictory && (performance.now() - gestureState.lastColorSwitchTime > 1500)) {
